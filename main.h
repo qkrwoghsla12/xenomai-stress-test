@@ -35,6 +35,9 @@
 /*****************************************************************************/
 /* EtherCAT Servo and Extras */
 /*****************************************************************************/
+#include <embdECATM.h> //./libs/ecatservo 
+#include <embdCOMMON.h>  //./libs/embedded
+#include <embdMATH.h>  //./libs/embedded
 /*****************************************************************************/
 /* Xenomai */
 /*****************************************************************************/
@@ -44,19 +47,16 @@
 /*****************************************************************************/
 /* Real-time Task Parameters and Variables */
 /*****************************************************************************/
-#define ECATCTRL_TASK_MODE	T_FPU|T_CPU(0)
+#define ECATCTRL_TASK_MODE1	T_FPU|T_CPU(0)
+#define ECATCTRL_TASK_MODE2	T_FPU|T_CPU(0)
 #define ECATCTRL_TASK_PRIORITY	(99) // xeno: 99 , preempt: 80
 #define CPUSPIN_TASK_PRIORITY	(98) // xeno: 99 , preempt: 80
 #define ECATCTRL_TASK_PERIOD	(1000000L)
+//#define SEC_DURATION (10)
 #define SEC_DURATION		(1800)
 #define CPUSPIN
 //#define SPINTIME		(240000)		// us
 //#define PROCESS
-
-#define SCALE_1K                (1000)
-#define SCALE_10K               (10000)
-#define SCALE_100K              (100000)
-#define SCALE_1M                (1000000)
 
 RT_TASK TskEcatCtrl;
 RT_TASK CpuSpin;
@@ -93,7 +93,7 @@ int VelCmds[4] = {500,510,520,530};
 #define MEASURE_TIMING //enable for timing analysis
 #ifdef MEASURE_TIMING
 RTIME RtmEcatPeriodStart=0, RtmEcatPeriodEnd=0, RtmEcatExecTime=0, RtmCollectTime,RtmTransmissionStart,  RtmProcessEnd, RtmProcessStart, RtmTranslateTime, RtmProcessTime; 
-int EcatPeriod, EcatExecution, EcatJitter, EcatCollect, EcatProcess, EcatTranslate;
+int EcatPeriod, EcatExecution, EcatJitter, EcatCollect, EcatProcess, EcatTranslate, SpinTaskPeriod;
 #define PERF_EVAL //enable to analyze EtherCAT Master Performance
 #ifdef PERF_EVAL
 
@@ -101,11 +101,15 @@ int EcatPeriod, EcatExecution, EcatJitter, EcatCollect, EcatProcess, EcatTransla
 
 int iBufEcatDataCnt = 0;
 int BufEcatPeriodTime[BUF_SIZE] = {0,}; 
+int BufSpinPeriodTime[BUF_SIZE] = {0,}; 
 int BufEcatExecTime[BUF_SIZE] 	= {0,};
 int BufEcatJitter[BUF_SIZE]	= {0,};
 int BufEcatCollect[BUF_SIZE]	= {0,};
 int BufEcatProcess[BUF_SIZE]	= {0,};
 int BufEcatTranslate[BUF_SIZE]	= {0,};
+int BufSpinTime[BUF_SIZE]	= {0,};
+int BufSpinExec[BUF_SIZE]	= {0,};
+int BufSpinJitter[BUF_SIZE]	= {0,};
 
 bool bTimingFlag = FALSE;
 
